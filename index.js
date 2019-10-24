@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import {
   View,
@@ -105,8 +105,7 @@ const EmojiCell = ({ emoji, colSize, ...other }) => (
   <TouchableOpacity
     activeOpacity={0.5}
     style={{
-      width: colSize,
-      height: colSize,
+      flex: 1,
       alignItems: "center",
       justifyContent: "center"
     }}
@@ -119,12 +118,13 @@ const EmojiCell = ({ emoji, colSize, ...other }) => (
 );
 
 const storage_key = "@react-native-emoji-selector:HISTORY";
-export default class EmojiSelector extends Component {
+export default class EmojiSelector extends PureComponent {
   state = {
     searchQuery: "",
     category: Categories.people,
     isReady: false,
     history: [],
+    data: [],
     emojiList: null,
     colSize: 0
   };
@@ -139,6 +139,9 @@ export default class EmojiSelector extends Component {
       this.setState({
         searchQuery: "",
         category
+      }, () => {
+        const data = this.returnSectionData();
+        this.setState({ data })
       });
     }
   };
@@ -239,11 +242,10 @@ export default class EmojiSelector extends Component {
       let name = Categories[c].name;
       emojiList[name] = sortEmoji(emojiByCategory(name));
     });
-
     this.setState(
       {
         emojiList,
-        colSize: Math.floor(width / this.props.columns)
+        colSize: Math.floor(width / this.props.columns),
       },
       cb
     );
@@ -261,7 +263,8 @@ export default class EmojiSelector extends Component {
     }
 
     this.prerenderEmojis(() => {
-      this.setState({ isReady: true });
+      const data = this.returnSectionData();
+      this.setState({ isReady: true, data });
     });
   }
 
@@ -281,7 +284,7 @@ export default class EmojiSelector extends Component {
       ...other
     } = this.props;
 
-    const { category, colSize, isReady, searchQuery } = this.state;
+    const { category, colSize, isReady, searchQuery, data } = this.state;
 
     const Searchbar = (
       <View style={styles.searchbar_container}>
@@ -322,7 +325,7 @@ export default class EmojiSelector extends Component {
                 <FlatList
                   style={styles.scrollview}
                   contentContainerStyle={{ paddingBottom: colSize }}
-                  data={this.returnSectionData()}
+                  data={data}
                   renderItem={this.renderEmojiCell}
                   horizontal={false}
                   numColumns={columns}
@@ -387,8 +390,7 @@ EmojiSelector.defaultProps = {
 
 const styles = StyleSheet.create({
   frame: {
-    flex: 1,
-    width: "100%"
+    flex: 1
   },
   loader: {
     flex: 1,
